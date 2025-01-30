@@ -1,0 +1,15 @@
+-- DROP FUNCTION public.f_is_numeric_return_value(varchar);
+
+CREATE OR REPLACE FUNCTION public.f_is_numeric_return_value(my_field_to_check varchar)
+	RETURNS varchar
+	LANGUAGE sql
+	IMMUTABLE
+AS $$
+	
+SELECT CASE
+           WHEN REGEXP_COUNT($1, '^[0-9]+$') > 0 THEN $1
+           ELSE NULL
+       END;
+
+$$
+;
