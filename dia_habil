@@ -1,0 +1,47 @@
+
+drop table if exists #calendario;
+
+create table #calendario as
+
+Select *, dia_habil_arg_universal as dia_habil_arg_fix
+from auxiliary_tables.calendar c 
+where 1=1
+and fecha between '2024-01-01' and last_day(dateadd(month,1,getdate()))
+;
+
+
+
+drop table if exists #calendario_2;
+create table #calendario_2 as
+
+select a.fecha as fecha, 
+a.periodo, 
+a.dia_de_semana, 
+a.dia_nro,
+a.dia_habil_arg_fix as dia_habil,
+case when a.dia_de_semana = 1 then 'Domingo'
+	when a.dia_de_semana = 2 then 'Lunes'
+	when a.dia_de_semana = 3 then 'Martes'
+	when a.dia_de_semana = 4 then 'Miercoles'
+	when a.dia_de_semana = 5 then 'Jueves'
+	when a.dia_de_semana = 6 then 'Viernes'
+	when a.dia_de_semana = 7 then 'Sabado'
+	else null end dia_semana_texto,
+    SUM(a.dia_habil_arg_fix) OVER (
+        PARTITION BY a.periodo 
+        ORDER BY a.fecha 
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS acumulado_dia_habil
+from #calendario a
+where 1=1
+-- and a.fecha = '2023-09-10'
+order by a.fecha
+;
+
+
+select periodo, left(dateadd(month, -1,(periodo + '-01') :: date) :: date,7) as periodo_vencimiento,  min(fecha) as quinto_to_dia_habil
+from #calendario_2
+where 1=1
+and acumulado_dia_habil = 5
+group by 1,2
+order by periodo
