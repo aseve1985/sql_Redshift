@@ -1,0 +1,1 @@
+REGEXP_SUBSTR(tu_campo, '\\d{11}') AS cuil_extraido
